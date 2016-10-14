@@ -1,0 +1,18 @@
+/* Global Styles */
+.alert {
+  margin: 10px 0 5px 0;
+}
+h1, h2, h3, h4, h5, h6 {
+  font-weight: bold;
+}
+
+/* Groups Selector */
+#group-selector {
+  margin-top: 30px;
+}
+
+/* Footer Styles */
+#footer {
+  border-top: 1px solid #dddddd;
+  padding-top: 10px;
+}
