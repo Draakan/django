@@ -27,8 +27,8 @@
             {% for group in groups %}
             <tr>
               <td>{{ forloop.counter }}</td>
-              <td><a href="{% url "groups_edit" group.id  %}">{{ group.name }}</td>
-              <td><a href="{% url "students_edit" group.leader.id %}">{{ group.leader.name }}</td>
+              <td><a href="{% url "groups_edit" group.id  %}">{{ group.title }}</td>
+              <td>{% if group.leader %}<a href="{% url "students_edit" group.leader.id %}">{{ group.leader.first_name }}   {{ group.leader.last_name}} </a>{% else}Немає{% endif %}</td>
               <td>
                 <div class="btn-group">
                   <button type="button" class="btn btn-default dropdown-toggle"
@@ -50,7 +50,7 @@
         <p>Поки немає груп у базі.</p>
         {% endif %}
         
-{% includes "students/nav.html" %}
+{% include "students/nav.html" %}
        
 {% endblock content %}
         
