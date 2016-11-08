@@ -17,7 +17,7 @@ def groups_list(request):
     paginator = Paginator(groups, 3)
     page = request.GET.get('page')
     try:
-    	grops = paginator.page(page)
+    	groups = paginator.page(page)
     except PageNotAnInteger:
     	groups = paginator.page(1)
     except EmptyPage:

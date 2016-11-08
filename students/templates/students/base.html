@@ -44,6 +44,7 @@
           <li role="presentation" {% if '/journal' in request.path %} class="active" {% endif %}><a href="{% url  "journal" %}">Відвідування</a></li>
           <li role="presentation" {% if '/groups' in request.path %} class="active" {% endif %}><a href="{% url "groups"  %}">Групи</a></li>
           <li role="presentation" {% if '/exams' in request.path %} class="active" {% endif %}><a href="{% url "exams"  %}">Іспити</a></li>
+          <li role="presentation" {% if '/contact-admin' in request.path %} class="active"{% endif %}><a href="{% url "contact_admin" %}">Контакт</a></li>
         </ul>
       </div>
     </div>
@@ -51,11 +52,15 @@
 
     <!-- Start Content Columns -->
     <div class="row" id="content-columns">
-	<div class="col-xs-12" id="content-column">
+	  <div class="col-xs-12" id="content-column">
+		
+		{% block status_message %}
+          {% if request.GET.status_message %}
+          <div class="alert alert-warning" role="alert">{{ request.GET.status_message }}</div>
+          {% endif %}
+        {% endblock status_message %}
+
 	
-	  {% comment "Not used alert so far" %}
-          <div class="alert alert-warning" role="alert">Студент успішно доданий.</div>
-          {% endcomment %}
 
         <h2>{% block title %} {% endblock title %}</h2>
         {% block content %} {% endblock content %}

@@ -1,9 +1,19 @@
 # -*- coding: utf-8 -*-
 
 from django.shortcuts import render
-from django.http import HttpResponse
+from django.http import HttpResponse, HttpResponseRedirect
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
+from django.core.urlresolvers import reverse
+from datetime import datetime
+from django.views.generic import UpdateView, DeleteView
+from django.forms import ModelForm
+
+from crispy_forms.helper import FormHelper
+from crispy_forms.layout import Submit
+from crispy_forms.bootstrap import FormActions
+
 from ..models import Student
+from ..models import Group
 
 
 def students_list(request):
@@ -15,7 +25,7 @@ def students_list(request):
         if request.GET.get('reverse', '') == '1':
             students = students.reverse()
             
-    paginator = Paginator(students, 3)
+    paginator = Paginator(students, 5)
     page = request.GET.get('page')
     try:
     	students = paginator.page(page)
@@ -28,10 +38,118 @@ def students_list(request):
         {'students': students})
 
 def students_add(request):
-    return HttpResponse('<h1>Student Add Form</h1>')
+	if request.method == "POST":
+		if request.POST.get('add_button') is not None:
+			errors = {}
+			data = {'middle_name': request.POST.get('middle_name'),
+						  'notes': request.POST.get('notes')}
+						  
+			first_name = request.POST.get('first_name', '').strip()
+			if not first_name:
+				errors['first_name'] = u"Імя є обовязковим"
+			else:
+				data['first_name'] = first_name
+				
+			last_name = request.POST.get('last_name', '').strip()
+			if not last_name:
+				errors['last_name'] = u"Прізвище є обовязковим"
+			else:
+				data['last_name'] = last_name
+			birthday = request.POST.get('birthday', '').strip()
+			if not birthday:
+				errors['birthday'] = u"Дата народження є обовязковою"
+			else:
+				try:
+					datetime.strptime(birthday, '%Y-%m-%d')
+				except Exception:
+					errors['birthday'] = u"Введіть коректний формат дати"
+				else:
+					data['birthday'] = birthday
+			ticket = request.POST.get('ticket', '').strip()
+			if not ticket:
+				errors['ticket'] = u"Номер білета є обовязковим"
+			else:
+				data['ticket'] = ticket
+				
+			student_group = request.POST.get('student_group', '').strip()
+			if not student_group:
+				errors['student_group'] = u"Оберіть групу для студента"
+			else:
+				groups = Group.objects.filter(pk=student_group)
+				if len(groups) != 1:
+					errors['student_group'] = u"Оберіть групу для студента"
+				else:
+					data['student_group'] = groups[0]
+					
+			photo = request.FILES.get('photo')
+			if photo:
+				data['photo'] = photo
+			if not errors:
+				student = Student(**data)
+				student.save()
+				
+				return HttpResponseRedirect(
+					u'%s?status_message=Студента успішно додано! '%
+					reverse('home'))
+			else:
+				return render(request, 'students/students_add.html',
+    					{'groups' : Group.objects.all().order_by('title'),
+    					  'errors' : errors})
+		elif request.POST.get('cancel_button') is not None:
+			return HttpResponseRedirect(
+    			u'%s?status_message=Додавання студента скасовано!'  %
+    			reverse('home'))
+	else:
+		return render(request, 'students/students_add.html',
+    					{'groups' : Group.objects.all().order_by('title')})
 
 def students_edit(request, sid):
     return HttpResponse('<h1>Edit Student %s</h1>' % sid)
 
 def students_delete(request, sid):
     return HttpResponse('<h1>Delete Student %s</h1>' % sid)
+    
+class StudentUpdateForm(ModelForm):
+	class Meta:
+		model = Student
+		
+	def __init__(self, *args, **kwargs):
+		super(StudentUpdateForm, self).__init__(*args, **kwargs)
+		
+		self.helper = FormHelper(self)
+		
+		self.helper.form_action = reverse('students_edit', kwargs={'pk':kwargs['instance'].id})
+		
+		self.helper.form_method = 'POST'
+		self.helper.form_class = 'form-horizontal'
+		
+		self.helper.help_text_inline = True
+		self.helper.html5_required = True
+		self.helper.label_class = 'col-sm-2 control-label'
+		self.helper.field_class = 'col-sm-10'
+		
+		self.helper.layout[-1] = FormActions(
+				Submit('add_button', u'Зберегти', css_class="btn btn-primary"),
+				Submit('cancel_button', u'Скасувати', css_class="btn btn-link"))
+    
+class StudentUpdateView(UpdateView):
+	model = Student
+	template_name = 'students/students_edit.html'
+	form_class = StudentUpdateForm
+	
+	def get_success_url(self):
+		return u'%s?status_message=Студента успішно збережено' % reverse('home')
+			
+	def post(self, request, *args, **kwargs):
+		if request.POST.get('cancel_button'):
+			return HttpResponseRedirect(
+				u'%s?status_message=Редагування студента відмінено' % reverse('home'))
+		else:
+			return super(StudentUpdateView, self).post(request, *args, **kwargs)
+			
+class StudentDeleteView(DeleteView):
+	model = Student
+	template_name = 'students/students_confirm_delete.html'
+	
+	def get_success_url(self):
+		return u'%s?status_message=Студента успішно видалено' % reverse ('home')
