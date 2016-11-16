@@ -12,11 +12,18 @@ from crispy_forms.helper import FormHelper
 from crispy_forms.layout import Submit
 from crispy_forms.bootstrap import FormActions
 
-from ..models import Student, Group
+from ..util import paginate, get_current_group
+
+from ..models import Student
+from ..models import Group
 
 
 def students_list(request):
-    students = Student.objects.all()
+    current_group = get_current_group(request)
+    if current_group:
+    	students = Student.objects.filter(student_group=current_group)
+    else:
+    	students = Student.objects.all()
     
     order_by = request.GET.get('order_by', '')
     if order_by in ('last_name', 'first_name', 'ticket'):
@@ -24,17 +31,9 @@ def students_list(request):
         if request.GET.get('reverse', '') == '1':
             students = students.reverse()
             
-    paginator = Paginator(students, 5)
-    page = request.GET.get('page')
-    try:
-    	students = paginator.page(page)
-    except PageNotAnInteger:
-    	students = paginator.page(1)
-    except EmptyPage:
-    	students = paginator.page(paginator.num_pages)
+    context = paginate(students, 10, request, {}, var_name='students')
 
-    return render(request, 'students/students_list.html',
-        {'students': students})
+    return render(request, 'students/students_list.html', context)
 
 def students_add(request):
 	if request.method == "POST":

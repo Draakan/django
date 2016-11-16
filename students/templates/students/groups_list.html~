@@ -9,7 +9,7 @@
 {% block content %}
 
 
-        <a href="#" class="btn btn-primary">Додати Групу</a>
+        <a href="{% url "groups_add" %}" class="btn btn-primary">Додати Групу</a>
         
          
         <!-- Start Students Listing -->
@@ -38,6 +38,7 @@
               <th>Дії</th>
             </tr>
           </thead>
+          {% endwith %}
           <tbody>
             {% for group in groups %}
             <tr>
@@ -65,7 +66,9 @@
         <p>Поки немає груп у базі.</p>
         {% endif %}
         
-{% include "students/nav2.html" %}
+{% with object_list=students %}
+	{% include "students/pagination.html" %}
+{% endwith %}
        
 {% endblock content %}
         

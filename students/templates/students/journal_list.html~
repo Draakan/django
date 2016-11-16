@@ -63,7 +63,7 @@
             {% for journal in journals %}
             <tr>
               <td>{{ forloop.counter }}</td>
-              <td><a href="#">{{ journals.last_name }}</br>{{ journals.name }}</a></td>
+              <td><a href="#">{{ journal.last_name }}</br>{{ journal.name }}</a></td>
               <td><input type="checkbox" checked></td>
               <td><input type="checkbox" checked></td>
               <td><input type="checkbox" checked></td>
